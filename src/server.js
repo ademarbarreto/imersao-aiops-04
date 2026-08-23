@@ -74,7 +74,14 @@ app.get('/post/:id', async (req, res) => {
 app.get('/', async (req, res) => {
 
     const posts = await models.Post.findAll();
-    res.render('index',{posts: posts});
+    const postsData = JSON.stringify(posts.map(post => ({
+        id: post.id,
+        publishDate: post.publishDate,
+        title: post.title,
+        summary: post.summary,
+        content: post.content
+    }))).replace(/</g, '\\u003c');
+    res.render('index',{posts: posts, postsData: postsData});
 });
 
 models.initDatabase();

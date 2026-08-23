@@ -1,0 +1,33 @@
+services:
+  app:
+    build:
+      context: ./src
+    image: fabricioveronez/kube-news-imersao
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-kubedevnews}
+      DB_USERNAME: ${DB_USERNAME:-kubedevnews}
+      DB_PASSWORD: ${DB_PASSWORD:-Pg#123}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-bookworm
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-kubedevnews}
+      POSTGRES_USER: ${DB_USERNAME:-kubedevnews}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-Pg#123}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-kubedevnews} -d ${DB_DATABASE:-kubedevnews}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:
