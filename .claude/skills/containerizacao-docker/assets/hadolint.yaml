@@ -1,0 +1,35 @@
+# Configuração do hadolint usada pela skill containerizacao-docker.
+#
+# Este arquivo codifica as regras que a skill já afirma em prosa — e nada além
+# disso. Regra que a skill não exige não vira gate, porque um gate que reprova
+# por coisas que ninguém pediu é um gate que as pessoas aprendem a ignorar.
+#
+# Política aplicada pelo scripts/lint-dockerfile.sh:
+#   error, warning  -> bloqueiam a entrega
+#   info, style     -> observação, julgada caso a caso
+
+override:
+  error:
+    # Fase 3 — tag fixa, nunca `latest`
+    - DL3006   # imagem base sem tag
+    - DL3007   # tag `latest`
+    # Fase 2, item 9 — exec form em CMD/ENTRYPOINT/HEALTHCHECK
+    - DL3025   # falta notação JSON
+    # Fase 2, item 6 — processo não roda como root.
+    # Cobre só o root explícito: o DL3002 olha se o último USER é root, e um
+    # Dockerfile sem USER nenhum passa limpo por ele. A omissão — que é a forma
+    # mais comum do defeito — é checada pelo próprio script (SKILL001).
+    - DL3002   # último USER da imagem é root
+    # Fase 2, item 2 — WORKDIR absoluto e estável
+    - DL3000   # WORKDIR relativo
+
+  info:
+    # A skill nunca pediu pin de versão de pacote de sistema, e estas são as
+    # regras mais barulhentas do hadolint. Como `warning` (o padrão delas) elas
+    # bloqueariam praticamente todo Dockerfile que instala algo via apt/apk.
+    - DL3008   # pin de versão em `apt-get install`
+    - DL3018   # pin de versão em `apk add`
+
+# Sem chave `ignored:` de propósito. Nada é escondido do relatório — achados que
+# a skill aceita (DL3066, por exemplo) aparecem como `info` e estão explicados
+# em references/lint.md.
